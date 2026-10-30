@@ -1,0 +1,27 @@
+name: Native hook feasibility smoke test
+on:
+  workflow_dispatch:
+jobs:
+  native-symbols:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build synthetic drawing-library example
+        shell: bash
+        run: |
+          cat > mock_draw.c <<'C'
+          __attribute__((visibility("default"))) void SpriteBatch_Draw(void) {}
+          __attribute__((visibility("default"))) void SpriteBatch_End(void) {}
+          C
+          gcc -shared -fPIC -o libmock_draw.so mock_draw.c
+      - name: Confirm symbols are visible
+        shell: bash
+        run: |
+          readelf -Ws libmock_draw.so | tee native-symbols.txt
+          grep -q 'SpriteBatch_Draw' native-symbols.txt
+          grep -q 'SpriteBatch_End' native-symbols.txt
+          echo 'PASS: Native symbol inspection toolchain works.'
+      - name: Save inspection output
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-symbols-synthetic
+          path: native-symbols.txt
