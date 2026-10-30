@@ -1,0 +1,32 @@
+name: Static APK compatibility check
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: 'Optional note (do not upload commercial APKs to public repos)'
+        required: false
+jobs:
+  validate-tools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check inspector syntax
+        run: python -m py_compile tools/inspect_apk.py
+      - name: Validate inspector using synthetic APK-shaped ZIP
+        run: |
+          python - <<'PY'
+          import zipfile
+          with zipfile.ZipFile('/tmp/sample.apk','w') as z:
+              z.writestr('AndroidManifest.xml', b'placeholder')
+              z.writestr('lib/arm64-v8a/libaot-MonoGame.Framework.dll.so', b'placeholder')
+              z.writestr('assets/sample.xnb', b'placeholder')
+          PY
+          python tools/inspect_apk.py /tmp/sample.apk --output /tmp/inventory.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/inventory.json'))
+          assert d['xnb_count']==1 and d['has_manifest']
+          PY
