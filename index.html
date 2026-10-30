@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Quest Pixel Farm — Stereo Proof of Concept</title>
+<style>
+body{margin:0;background:#131a24;color:#f5eedb;font:16px system-ui,sans-serif}#panel{position:fixed;z-index:5;top:12px;left:12px;max-width:330px;padding:16px;background:#182438ee;border:1px solid #7b9c99;border-radius:14px}h1{font-size:19px;margin:0 0 8px}p{font-size:13px;line-height:1.5}button{padding:10px 12px;border-radius:9px;border:0;margin:3px;background:#e7c477;color:#1a2530;font-weight:700}button.selected{outline:3px solid #71d8b7}small{display:block;margin-top:10px;opacity:.8}#status{font-size:12px;color:#b5e7d2}canvas{display:block}
+</style>
+</head><body>
+<div id="panel"><h1>🌱 Quest Pixel Farm</h1><p>Standalone Quest 3 stereoscopic proof of concept. Original test artwork — not Stardew Valley.</p><button id="screen" class="selected">3D screen</button><button id="table">Tabletop farm</button><button id="depth">Depth: medium</button><p id="status">Choose a mode, then press Enter VR at the bottom of the page. Move your head to see parallax.</p><small>Requires Quest Browser, HTTPS hosting, and an internet connection to load Three.js. No PC needed to play.</small></div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js';
+import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/webxr/VRButton.js';
+const scene=new THREE.Scene();scene.background=new THREE.Color('#182637');
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.01,100);camera.position.set(0,1.55,2.4);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.xr.enabled=true;document.body.appendChild(renderer.domElement);
+document.body.appendChild(VRButton.createButton(renderer));
+scene.add(new THREE.HemisphereLight(0xffffff,0x52634b,2.2));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(-2,5,4);scene.add(sun);
+const root=new THREE.Group();scene.add(root);
+let mode='screen',depth=.055;const colors={ground:'#74a657',soil:'#8d5b3d',wood:'#a06d4a',roof:'#c86d59',crop:'#53b85b',gold:'#f0cb67'};
+function mat(c){return new THREE.MeshStandardMaterial({color:c,roughness:1,side:THREE.DoubleSide})}
+function box(w,h,d,c,x,y,z,parent=root){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c));o.position.set(x,y,z);parent.add(o);return o}
+function pixelTexture(draw){const c=document.createElement('canvas');c.width=32;c.height=32;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;draw(ctx);const t=new THREE.CanvasTexture(c);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestFilter;return t}
+const plant=pixelTexture(c=>{c.fillStyle='#387f41';c.fillRect(14,13,4,17);c.fillStyle='#4cc269';c.fillRect(7,10,9,7);c.fillRect(17,6,9,8);c.fillStyle='#f5c65b';c.fillRect(13,3,7,7)});
+const hero=pixelTexture(c=>{c.fillStyle='#e8b885';c.fillRect(10,8,12,10);c.fillStyle='#8c593d';c.fillRect(7,4,18,7);c.fillStyle='#4277a8';c.fillRect(8,18,16,10);c.fillStyle='#293e57';c.fillRect(9,28,6,4);c.fillRect(18,28,6,4)});
+function sprite(tex,w,h,x,y,z,parent=root){const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.05,side:THREE.DoubleSide}));mesh.position.set(x,y,z);parent.add(mesh);return mesh}
+function clear(){while(root.children.length)root.remove(root.children[0])}
+function buildScreen(){clear();root.position.set(0,1.45,-1.5);root.rotation.set(0,0,0);const unit=depth/.055;
+box(1.9,1.25,.015,'#344f36',0,0,-.12,root);box(1.78,1.13,.01,colors.ground,0,0,-.10,root);
+for(let r=0;r<3;r++)for(let c=0;c<5;c++){const x=-.62+c*.29,y=-.35+r*.29;box(.23,.16,.008,colors.soil,x,y,-.08,root);sprite(plant,.18,.22,x,y+.09,-.065+unit*.018,root)}
+box(.42,.34,.045,colors.wood,.52,.30,-.04+unit*.016,root);box(.51,.16,.06,colors.roof,.52,.55,-.015+unit*.028,root);box(.12,.19,.007,'#553c2b',.52,.24,-.005+unit*.035,root);
+sprite(hero,.21,.26,-.49,-.02,.035+unit*.04,root);
+box(1.97,.055,.055,'#d7bc84',0,-.65,.015,root);box(1.97,.055,.055,'#d7bc84',0,.65,.015,root);
+}
+function buildTable(){clear();root.position.set(0,.78,-1.15);root.rotation.set(0,0,0);
+box(1.15,.055,.85,colors.ground,0,0,0,root);box(1.2,.08,.9,'#6a4938',0,-.055,0,root);
+for(let r=0;r<3;r++)for(let c=0;c<5;c++){const x=-.4+c*.19,z=-.22+r*.18;box(.145,.012,.13,colors.soil,x,.036,z,root);const p=sprite(plant,.13,.17,x,.135,z,root);p.rotation.y=0}
+box(.27,.23,.24,colors.wood,.32,.16,-.25,root);const roof=box(.32,.09,.28,colors.roof,.32,.32,-.25,root);roof.rotation.z=-.12;
+const h=sprite(hero,.15,.19,-.36,.15,.22,root);h.rotation.y=0;
+box(1.45,.045,1.1,'#5d4538',0,-.12,0,root);
+}
+function rebuild(){if(mode==='screen')buildScreen();else buildTable()}
+const screen=document.getElementById('screen'),table=document.getElementById('table');
+screen.onclick=()=>{mode='screen';screen.classList.add('selected');table.classList.remove('selected');rebuild()};
+table.onclick=()=>{mode='table';table.classList.add('selected');screen.classList.remove('selected');rebuild()};
+const depths=[0,.055,.12];let di=1;document.getElementById('depth').onclick=()=>{di=(di+1)%3;depth=depths[di];document.getElementById('depth').textContent='Depth: '+['off','medium','strong'][di];rebuild()};
+window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+rebuild();renderer.setAnimationLoop(()=>renderer.render(scene,camera));
+</script></body></html>
