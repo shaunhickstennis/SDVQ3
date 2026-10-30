@@ -1,0 +1,32 @@
+{
+  "file": "Stardew-Valley-v1.6.15.3-full-apkvision.apk",
+  "sha256": "b9ae4727e10a89b144a1301076ebb1e38586aba13f85c4c86ad9d5c3aaf21a28",
+  "bytes": 430623152,
+  "zip_entries": 3709,
+  "architectures": [
+    "arm64-v8a",
+    "armeabi-v7a"
+  ],
+  "managed_assemblies": [],
+  "notable_native_libraries": [
+    "lib/arm64-v8a/libAPKVISION.so",
+    "lib/arm64-v8a/libaot-Mono.Android.Runtime.dll.so",
+    "lib/arm64-v8a/libaot-Mono.Android.dll.so",
+    "lib/arm64-v8a/libaot-MonoGame.Framework.dll.so",
+    "lib/arm64-v8a/libaot-StardewValley.GameData.dll.so",
+    "lib/arm64-v8a/libaot-StardewValley.dll.so",
+    "lib/arm64-v8a/libmono-component-marshal-ilgen.so",
+    "lib/arm64-v8a/libmonodroid.so",
+    "lib/arm64-v8a/libmonosgen-2.0.so",
+    "lib/armeabi-v7a/libAPKVISION.so",
+    "lib/armeabi-v7a/libmono-component-marshal-ilgen.so",
+    "lib/armeabi-v7a/libmonodroid.so",
+    "lib/armeabi-v7a/libmonosgen-2.0.so"
+  ],
+  "dex_files": [
+    "classes.dex"
+  ],
+  "has_manifest": true,
+  "has_xnb_assets": true,
+  "xnb_count": 3550
+}
